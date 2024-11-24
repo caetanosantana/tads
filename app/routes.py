@@ -1,42 +1,33 @@
-from fastapi import APIRouter, Depends
-from models import Item
-from database import create_item, get_items, update_item, delete_item
-from auth import get_current_user
+from fastapi import APIRouter, HTTPException
+from database import Item, create_item, get_items, update_item, delete_item
 
 router = APIRouter()
 
-@router.get("/items", tags=["Items"])
-def read_items():
-    """
-    Lista todos os itens.
-    Acesso permitido apenas com token presente.
-    """
+@router.get("/")
+def root():
+    return {"message": "API funcionando!"}
+
+@router.get("/items", tags=["Itens"])
+def exibir_items():
     return get_items()
 
-@router.post("/items", tags=["Items"])
-def create_new_item(item: Item):
-    """
-    Cria um novo item.
-    Acesso permitido apenas com token presente.
-    """
-    return create_item(item)
+@router.post("/itens", tags=["Itens"])
+def criar_item(item: Item):
+    try:
+        return create_item(item)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.put("/items/{item_id}", tags=["Items"])
-def update_existing_item(item_id: int, item: Item):
-    """
-    Atualiza um item existente.
-    Acesso permitido apenas com token presente.
-    """
+@router.put("/itens/{item_id}", tags=["Itens"])
+def atualizar_item(item_id: int, item: Item):
     updated_item = update_item(item_id, item)
     if not updated_item:
-        return {"error": "Item not found"}
+        raise HTTPException(status_code=404, detail="Item não encontrado.")
     return updated_item
 
-@router.delete("/items/{item_id}", tags=["Items"])
-def delete_existing_item(item_id: int):
-    """
-    Deleta um item existente.
-    Acesso permitido apenas com token presente.
-    """
+@router.delete("/itens/{item_id}", tags=["Itens"])
+def deletar_item(item_id: int):
+    if not any(item.id == item_id for item in get_items()):
+        raise HTTPException(status_code=404, detail="Item não encontrado.")
     delete_item(item_id)
-    return {"message": "Item deleted"}
+    return {"mensagem": "Item deletado com sucesso."}

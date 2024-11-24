@@ -3,12 +3,9 @@ from fastapi.openapi.utils import get_openapi
 from routes import router
 
 app = FastAPI()
-
-# Incluindo as rotas
 app.include_router(router)
 
-# Documentação customizada
-def custom_openapi():
+def detalhes_swagger():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
@@ -20,7 +17,5 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
-app.openapi = custom_openapi
-@app.get("/")
-def read_root():
-    return {"message": "API funcionando!"}
+app.openapi = detalhes_swagger
+
